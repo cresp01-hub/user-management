@@ -47,6 +47,7 @@ jobs:
 
         # Build and SonarQube analysis
       - name: Build and analyze
+        runs-on: self-hosted
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
