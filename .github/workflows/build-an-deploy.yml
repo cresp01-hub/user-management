@@ -1,4 +1,4 @@
-name: SonarQube Analysis
+name: Build and SonarQube Analysis
 
 on:
   push:
@@ -6,30 +6,24 @@ on:
       - main
 
 jobs:
-  sonar:
-    name: SonarQube Analysis
+  build:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
 
       - name: Set up JDK 19
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v2
         with:
-          java-version: 17
-          distribution: 'zulu'
+          java-version: '19'
 
-
-      - name: Run SonarQube analysis
+      - name: Build and analyze with SonarQube
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn -B verify sonar:sonar -e \
+          mvn clean verify sonar:sonar \
           -Dsonar.projectKey=user-managment \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-   
-
