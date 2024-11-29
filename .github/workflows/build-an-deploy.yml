@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: SonarQube Analysis
 
 on:
   push:
@@ -6,63 +6,30 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build, Analyze, and Deploy
-    runs-on: self-hosted
+  sonar:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v1
+
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
         with:
-          java-version: 21
+          java-version: 17
+          distribution: 'zulu'
 
-      - name: Setup Maven
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Uri "https://downloads.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.zip" -OutFile "maven.zip"
-          Expand-Archive -Path "maven.zip" -DestinationPath "$env:USERPROFILE\maven"
-          echo "MAVEN_HOME=$env:USERPROFILE\maven\apache-maven-3.8.8" >> $env:GITHUB_ENV
-          echo "$env:USERPROFILE\maven\apache-maven-3.8.8\bin" >> $env:GITHUB_PATH
 
-      - name: Build and analyze
+      - name: Run SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify sonar:sonar -Dsonar.project.settings=./sonar-project.properties
-        shell: cmd
-
-      - name: Build Docker image
-        run: docker build -t carikk/quality-gate:latest .
-
-      - name: Log in to DockerHub
-        shell: powershell
-        run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-
-      - name: Push Docker image
-        run: docker push carikk/quality-gate:latest
-
-      - name: Set up kubeconfig
         run: |
-          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
-          kubectl config use-context docker-desktop
-          kubectl config set-context --current --namespace=ensakh
-
-      - name: Verify Kubernetes context
-        run: |
-          kubectl config current-context
-          kubectl get namespaces
-
-      - name: Deploy to kube
-        run: kubectl apply -f k8s/deployment.yaml
-
-      - name: Verify Kubernetes context
-        run: |
-          kubectl config current-context
-          kubectl get nodes
-          kubectl get namespaces
-          kubectl get pods
+          mvn -B verify sonar:sonar \
+          -Dsonar.projectKey=<user-managment> \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
