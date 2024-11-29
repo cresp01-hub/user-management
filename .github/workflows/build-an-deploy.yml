@@ -30,7 +30,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -B verify sonar:sonar \
-          -Dsonar.projectKey=<user-managment> \
+          -Dsonar.projectKey=user-managment \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
