@@ -36,6 +36,7 @@ jobs:
         run: mvn -B verify sonar:sonar -Dsonar.project.settings=./sonar-project.properties
         shell: cmd
 
+
       - name: Build Docker image
         run: docker build -t carikk/quality-gate:latest .
 
